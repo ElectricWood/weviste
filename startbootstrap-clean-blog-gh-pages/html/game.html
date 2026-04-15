@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Runner Game</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+        background: #87CEEB;
+    }
+
+    #game {
+        position: relative;
+        width: 100vw;
+        height: 300px;
+        background: #cceeff;
+        overflow: hidden;
+        border-bottom: 5px solid #333;
+    }
+
+    #runner {
+        position: absolute;
+        bottom: 0;
+        left: 50px;
+        width: 40px;
+        height: 40px;
+        background: red;
+        border-radius: 5px;
+    }
+
+    #obstacle {
+        position: absolute;
+        bottom: 0;
+        right: -50px;
+        width: 30px;
+        height: 50px;
+        background: green;
+    }
+
+    #score {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-size: 20px;
+        color: black;
+    }
+
+    #gameOver {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 30px;
+        color: black;
+        display: none;
+        text-align: center;
+    }
+</style>
+</head>
+<body>
+
+<div id="game">
+    <div id="runner"></div>
+    <div id="obstacle"></div>
+    <div id="score">Score: 0</div>
+    <div id="gameOver">Game Over<br>Click or Press Space to Restart</div>
+</div>
+
+<script>
+const runner = document.getElementById("runner");
+const obstacle = document.getElementById("obstacle");
+const scoreDisplay = document.getElementById("score");
+const gameOverText = document.getElementById("gameOver");
+
+let isJumping = false;
+let velocity = 0;
+let gravity = 0.8;
+let position = 0;
+
+let obstacleX = 800;
+let speed = 6;
+let score = 0;
+let gameOver = false;
+
+function jump() {
+    if (isJumping || gameOver) return;
+    isJumping = true;
+    velocity = 12;
+}
+
+function updateRunner() {
+    if (isJumping) {
+        position += velocity;
+        velocity -= gravity;
+
+        if (position <= 0) {
+            position = 0;
+            isJumping = false;
+        }
+
+        runner.style.bottom = position + "px";
+    }
+}
+
+function updateObstacle() {
+    obstacleX -= speed;
+    if (obstacleX < -50) {
+        obstacleX = window.innerWidth;
+        score++;
+        speed += 0.3; // increase difficulty
+    }
+    obstacle.style.right = (window.innerWidth - obstacleX) + "px";
+}
+
+function checkCollision() {
+    const runnerRect = runner.getBoundingClientRect();
+    const obstacleRect = obstacle.getBoundingClientRect();
+
+    if (
+        runnerRect.right > obstacleRect.left &&
+        runnerRect.left < obstacleRect.right &&
+        runnerRect.bottom > obstacleRect.top
+    ) {
+        endGame();
+    }
+}
+
+function endGame() {
+    gameOver = true;
+    gameOverText.style.display = "block";
+}
+
+function resetGame() {
+    gameOver = false;
+    score = 0;
+    speed = 6;
+    obstacleX = window.innerWidth;
+    gameOverText.style.display = "none";
+}
+
+function gameLoop() {
+    if (!gameOver) {
+        updateRunner();
+        updateObstacle();
+        checkCollision();
+        scoreDisplay.textContent = "Score: " + score;
+    }
+    requestAnimationFrame(gameLoop);
+}
+
+document.addEventListener("keydown", (e) => {
+    if (e.code === "Space") {
+        if (gameOver) {
+            resetGame();
+        } else {
+            jump();
+        }
+    }
+});
+
+document.addEventListener("click", () => {
+    if (gameOver) {
+        resetGame();
+    } else {
+        jump();
+    }
+});
+
+gameLoop();
+</script>
+
+</body>
+</html>
